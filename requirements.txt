@@ -2,3 +2,5 @@ fastapi
 torch
 torchvision
 opencv-python
+uvicorn[standard]
+python-multipart
