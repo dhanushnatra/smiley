@@ -3,3 +3,4 @@ dataset/
 env/
 face_expression_model.pth
 classes.txt
+__pycache__/

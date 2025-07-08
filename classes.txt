@@ -1,8 +1,0 @@
-0__Anger
-1__Contempt
-2__Disgust
-3__Fear
-4__Happy
-5__Neutral
-6__Sad
-7__Surprise

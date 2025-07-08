@@ -1,4 +1,5 @@
 import os
+from face_helper import detect_face_and_save
 emotions = [
     "Anger",
     "Contempt",
@@ -26,8 +27,8 @@ for ty in ["train", "test","valid"]:
             cl = int(labelFile.read().split(" ")[0])
         
         if os.path.exists(f"dataset/{ty}/images/{label[:-3]}jpg"):
-            os.system(f"cp dataset/{ty}/images/{label[:-3]}jpg data/{ty}/{cl}__{emotions[cl]}/")
+            detect_face_and_save(image_path=f"dataset/{ty}/images/{label[:-3]}jpg",save_path=f"data/{ty}/{cl}__{emotions[cl]}/{label[:-3]}jpg")
         else:
-            os.system(f"cp dataset/{ty}/images/{label[:-3]}png data/{ty}/{cl}__{emotions[cl]}/")
+            detect_face_and_save(image_path=f"dataset/{ty}/images/{label[:-3]}png",save_path=f"data/{ty}/{cl}__{emotions[cl]}/{label[:-3]}png")
 
 print("Dataset (Train , Test , Valid ) created successfully in the 'data' directory.")
