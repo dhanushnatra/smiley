@@ -2,13 +2,14 @@
 # Step1 :
 - go to <a href="https://www.kaggle.com/datasets/fatihkgg/affectnet-yolo-format">Dataset Link</a>
 and download dataset
-- extract to folder named dataset in working directory and then 
+- extract to folder named dataset in working directory and then
+- create a virtual environment and activate it  (optional)
 - Install requirements
     ```bash
     pip install -r requirements.txt
     ```
 
-# Step 2 : 
+# Step 2 (Optional): 
 
 - ## Run
 
@@ -16,7 +17,7 @@ and download dataset
     python3 create_dataset.py
     ```
 
-# Step 3 :
+# Step 3 (Optional):
 
 - Run train_model.ipynb Notebook
 
@@ -26,5 +27,6 @@ and download dataset
     -   run this to view it in your web browser
 
     ```
-    python3 app.py 
+    uvicorn app:app 
     ```
+    - open the link http://127.0.0.1:8000 
