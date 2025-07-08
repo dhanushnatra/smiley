@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Camera Access Example</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 50px;
+        }
+
+        video {
+            border: 2px solid #333;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Camera Preview</h1>
+    <video id="camera" width="480" height="360" autoplay playsinline></video>
+    <h1>Emotion : <span id="emotion-text"></span><br>
+        Emoji : <span id="emotion-emoji"></span>
+    </h1>
+    <script>
+        const textEmoji = {
+            "Anger": "😠",
+            "Contempt": "😤",
+            "Disgust": "🤢",
+            "Fear": "😨",
+            "Happy": "😊",
+            "Neutral": "😐",
+            "Sad": "😢",
+            "Surprise": "😲"
+        }
+        const emotionText = document.getElementById('emotion-text');
+        const emotionEmoji = document.getElementById('emotion-emoji');
+        const video = document.getElementById('camera');
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(stream => {
+                    video.srcObject = stream;
+                })
+                .catch(err => {
+                    video.insertAdjacentHTML('afterend', `<p>Camera access denied: ${err.message}</p>`);
+                });
+        } else {
+            video.insertAdjacentHTML('afterend', '<p>Camera API not supported in this browser.</p>');
+        }
+        const socket = new WebSocket('/ws');
+        socket.onopen = () => {
+            console.log('WebSocket connection established');
+            // Create a canvas to capture video frames
+            const canvas = document.createElement('canvas');
+            canvas.width = video.width;
+            canvas.height = video.height;
+            const ctx = canvas.getContext('2d');
+
+            // Send a frame every second (1fps)
+            setInterval(() => {
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                canvas.toBlob(blob => {
+                    if (blob && socket.readyState === WebSocket.OPEN) {
+                        // Read blob as ArrayBuffer and send as bytes
+                        const reader = new FileReader();
+                        reader.onload = function () {
+                            socket.send(reader.result);
+                        };
+                        reader.readAsArrayBuffer(blob);
+                    }
+                }, 'image/jpeg', 0.7); // JPEG format, quality 0.7
+            }, 1000);
+        };
+        socket.onmessage = (event) => {
+            console.log('Received from server:', event.data);
+            const data = JSON.parse(event.data);
+            if (data["emotion"]) {
+                emotionText.textContent = data.emotion;
+                emotionEmoji.textContent = textEmoji[data.emotion]; // Default emoji if none
+            } else {
+                emotionText.textContent = "No detection yet";
+                emotionEmoji.textContent = "😐"; // Default emoji
+            }
+
+        };
+        socket.onerror = (error) => {
+            console.error('WebSocket error:', error);
+        };
+        socket.onclose = () => {
+            console.log('WebSocket connection closed');
+        };
+    </script>
+</body>
+
+</html>

@@ -1,8 +1,13 @@
 import pickle
 import torch
+import cv2
+import warnings
+warnings.filterwarnings("ignore") 
 import torch.nn as nn
-from PIL import Image
+import numpy as np
 from torchvision import transforms, models
+from PIL import Image
+import time
 
 # Image preprocessing pipeline
 transform = transforms.Compose([
@@ -13,7 +18,7 @@ transform = transforms.Compose([
 ])
 
 # Load the model architecture
-model_loaded =  nn.Sequential(
+model_loaded :nn.Sequential=  nn.Sequential(
     models.resnet18(pretrained=True),
     nn.Linear(1000, 512),
     nn.ReLU(),
@@ -39,7 +44,7 @@ except Exception as e:
 # Load class labels
 try:
     with open("Emotions.pkl", 'rb') as f:
-        classes = pickle.load(f)
+        classes:list = pickle.load(f)
     print(f"Loaded {len(classes)} classes successfully")
 except FileNotFoundError:
     print("Error: Classes file 'classes.pkl' not found")
@@ -48,9 +53,21 @@ except Exception as e:
     print(f"Error loading classes: {e}")
     raise
 
-def predict(img_path):
+def predict(img_input):
+
     # Load and preprocess the image
-    img = Image.open(img_path).convert('RGB')
+    if isinstance(img_input, str):
+        # Handle file path
+        img = Image.open(img_input).convert('RGB')
+    elif isinstance(img_input, np.ndarray):
+        # Handle numpy array (OpenCV image)
+        if len(img_input.shape) == 3 and img_input.shape[2] == 3:
+            # BGR to RGB conversion for OpenCV images
+            img_input = cv2.cvtColor(img_input, cv2.COLOR_BGR2RGB)
+        img = Image.fromarray(img_input.astype('uint8'), 'RGB')
+    else:
+        # Assume it's already a PIL Image
+        img = img_input
     img_tensor = transform(img).unsqueeze(0).to(device)
 
     # Load model weights
@@ -58,7 +75,7 @@ def predict(img_path):
     # model.eval()
     
     with torch.no_grad():
-        output = model_loaded(img_tensor)
+        output :torch.Tensor = model_loaded(img_tensor)
         pred = output.argmax(dim=1)
     emotion = classes[pred.item()].split("__")[1]  # Extract emotion name from class label
     return {"emotion": emotion}
